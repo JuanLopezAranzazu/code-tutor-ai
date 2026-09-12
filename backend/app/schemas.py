@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Literal
 from datetime import datetime
 
+from uuid import UUID
 
 # ---------- Auth ----------
 
@@ -17,7 +18,7 @@ class UserLogin(BaseModel):
 
 
 class UserOut(BaseModel):
-    id: str
+    id: UUID
     email: EmailStr
     name: Optional[str] = None
 
@@ -34,7 +35,7 @@ class TokenResponse(BaseModel):
 # ---------- Modulos ----------
 
 class TopicOut(BaseModel):
-    id: str
+    id: UUID
     name: str
 
 

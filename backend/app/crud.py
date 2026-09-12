@@ -41,13 +41,20 @@ def record_attempt(
         .first()
     )
     if progress is None:
-        progress = models.ModuleProgress(user_id=user_id, module_id=module_id)
+        progress = models.ModuleProgress(
+            user_id=user_id,
+            module_id=module_id,
+            exercises_attempted=0,
+            exercises_correct=0,
+            total_score=0,
+        )
         db.add(progress)
 
-    progress.exercises_attempted += 1
-    if correct:
-        progress.exercises_correct += 1
-    progress.total_score += score
+    progress.exercises_attempted = (progress.exercises_attempted or 0) + 1
+    progress.exercises_correct = (progress.exercises_correct or 0) + (
+        1 if correct else 0
+    )
+    progress.total_score = (progress.total_score or 0) + score
     progress.last_activity = datetime.now(timezone.utc)
 
     db.commit()

@@ -15,7 +15,13 @@ def _to_schema(module: models.Module) -> schemas.ModuleOut:
         id=module.id,
         name=module.name,
         description=module.description,
-        topics=[schemas.TopicOut(id=t.key, name=t.name) for t in topics],
+        topics=[
+            schemas.TopicOut(
+                id=t.id,
+                name=t.name
+            )
+            for t in topics
+        ],
     )
 
 
