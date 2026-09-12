@@ -33,34 +33,36 @@ class TokenResponse(BaseModel):
 
 # ---------- Modulos ----------
 
-class Topic(BaseModel):
+class TopicOut(BaseModel):
     id: str
     name: str
 
 
-class Module(BaseModel):
+class ModuleOut(BaseModel):
     id: str
     name: str
-    icon: str
     description: str
-    topics: List[Topic]
+    topics: List[TopicOut]
 
 
-# ---------- Tutor ----------
-
-class ChatMessage(BaseModel):
-    role: Literal["user", "assistant"]
-    content: str
-
+# ---------- Tutor / chat ----------
 
 class TutorRequest(BaseModel):
     module_id: str
     message: str
-    history: List[ChatMessage] = []
 
 
 class TutorResponse(BaseModel):
     reply: str
+
+
+class ChatMessageOut(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 # ---------- Ejercicios ----------
