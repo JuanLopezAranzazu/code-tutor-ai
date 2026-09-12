@@ -8,9 +8,9 @@ import Register from "./pages/Register";
 
 export default function App() {
   return (
-    <div>
+    <div className="min-h-screen bg-slate-950">
       <Nav />
-      <main>
+      <main className="mx-auto max-w-6xl px-6 py-8">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
