@@ -1,11 +1,37 @@
-function App() {
+import { Routes, Route } from "react-router-dom";
+import Nav from "./components/Nav";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Dashboard from "./pages/Dashboard";
+import ModulePage from "./pages/ModulePage";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+export default function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950">
-      <h1 className="text-4xl font-bold text-white">
-        CodeTutor AI
-      </h1>
+    <div>
+      <Nav />
+      <main>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/module/:moduleId"
+            element={
+              <ProtectedRoute>
+                <ModulePage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
     </div>
   );
 }
-
-export default App;
