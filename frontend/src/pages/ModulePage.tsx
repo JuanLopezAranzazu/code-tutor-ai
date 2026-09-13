@@ -7,6 +7,7 @@ import type {
   Exercise,
   SubmitResult,
   ModuleProgress,
+  ExerciseHistoryItem,
 } from "../types";
 import {
   fetchModules,
@@ -16,11 +17,21 @@ import {
   generateExercise,
   submitExercise,
   fetchProgress,
+  fetchExercise,
+  fetchExerciseHistory,
 } from "../api/client";
 import ChatBubble from "../components/ChatBubble";
 import ProgressBar from "../components/ProgressBar";
 import CodeEditor from "../components/CodeEditor";
-import { Send, Sparkles, RefreshCcw, Trash2, Loader2 } from "lucide-react";
+import {
+  Send,
+  Sparkles,
+  RefreshCcw,
+  Trash2,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 
 const tabTrigger =
   "px-3 py-2 text-sm font-medium text-slate-400 border-b-2 border-transparent data-[state=active]:border-brand-500 data-[state=active]:text-slate-100 transition whitespace-nowrap sm:px-4";
@@ -214,6 +225,17 @@ function ExercisesTab({ module }: { module: Module }) {
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [loadingGen, setLoadingGen] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [history, setHistory] = useState<ExerciseHistoryItem[]>([]);
+
+  function loadHistory() {
+    fetchExerciseHistory(module.id)
+      .then(setHistory)
+      .catch(() => {});
+  }
+
+  useEffect(() => {
+    loadHistory();
+  }, [module.id]);
 
   async function handleGenerate() {
     setLoadingGen(true);
@@ -222,22 +244,26 @@ function ExercisesTab({ module }: { module: Module }) {
       const ex = await generateExercise(module.id, topic || null, difficulty);
       setExercise(ex);
       setCode(ex.starter_code);
+      loadHistory();
     } finally {
       setLoadingGen(false);
     }
+  }
+
+  async function handleOpenPrevious(item: ExerciseHistoryItem) {
+    setResult(null);
+    const ex = await fetchExercise(item.id);
+    setExercise(ex);
+    setCode(ex.starter_code);
   }
 
   async function handleSubmit() {
     if (!exercise) return;
     setLoadingSubmit(true);
     try {
-      const res = await submitExercise(
-        module.id,
-        exercise.title,
-        exercise.statement,
-        code,
-      );
+      const res = await submitExercise(exercise.id, code);
       setResult(res);
+      loadHistory();
     } finally {
       setLoadingSubmit(false);
     }
@@ -344,6 +370,66 @@ function ExercisesTab({ module }: { module: Module }) {
               <p className="mt-1 whitespace-pre-line">{result.feedback}</p>
             </div>
           )}
+        </div>
+      )}
+
+      {history.length > 0 && (
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5">
+          <h4 className="mb-3 text-sm font-semibold text-slate-300">
+            Ejercicios anteriores
+          </h4>
+          <ul className="max-h-72 divide-y divide-slate-800 overflow-y-auto">
+            {history.map((item) => {
+              const isActive = exercise && item.id === (exercise as any).id;
+              return (
+                <li key={item.id}>
+                  <button
+                    onClick={() => handleOpenPrevious(item)}
+                    className={`flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1.5 rounded-lg px-2 py-2.5 text-left text-sm transition ${
+                      isActive
+                        ? "bg-brand-600/10 text-brand-400"
+                        : "hover:bg-slate-800/60"
+                    }`}
+                  >
+                    <span className="min-w-0 flex-1 truncate text-slate-200">
+                      {item.title}
+                    </span>
+
+                    <span className="flex shrink-0 items-center gap-2">
+                      {item.last_correct !== null && (
+                        <span
+                          className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                            item.last_correct
+                              ? "bg-emerald-950/60 text-emerald-400"
+                              : "bg-amber-950/60 text-amber-400"
+                          }`}
+                        >
+                          {item.last_correct ? (
+                            <CheckCircle2 size={12} />
+                          ) : (
+                            <XCircle size={12} />
+                          )}
+                          {item.last_score}/100
+                        </span>
+                      )}
+
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+                          item.difficulty === "facil"
+                            ? "bg-emerald-950/40 text-emerald-400"
+                            : item.difficulty === "media"
+                              ? "bg-amber-950/40 text-amber-400"
+                              : "bg-rose-950/40 text-rose-400"
+                        }`}
+                      >
+                        {item.difficulty}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
     </div>

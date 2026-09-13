@@ -75,6 +75,7 @@ class ExerciseRequest(BaseModel):
 
 
 class Exercise(BaseModel):
+    id: UUID
     title: str
     statement: str
     starter_code: str
@@ -83,9 +84,7 @@ class Exercise(BaseModel):
 
 
 class SubmitSolutionRequest(BaseModel):
-    module_id: str
-    exercise_title: str
-    exercise_statement: str
+    exercise_id: str
     user_code: str
 
 
@@ -93,6 +92,16 @@ class SubmitSolutionResponse(BaseModel):
     correct: bool
     score: int
     feedback: str
+
+
+class ExerciseHistoryItem(BaseModel):
+    id: UUID
+    title: str
+    topic: Optional[str] = None
+    difficulty: str
+    created_at: datetime
+    last_correct: Optional[bool] = None
+    last_score: Optional[int] = None
 
 
 # ---------- Progreso ----------

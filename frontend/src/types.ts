@@ -26,11 +26,22 @@ export interface ChatMessageOut extends ChatMessage {
 }
 
 export interface Exercise {
+  id: string;
   title: string;
   statement: string;
   starter_code: string;
   difficulty: string;
   hints: string[];
+}
+
+export interface ExerciseHistoryItem {
+  id: string;
+  title: string;
+  topic?: string | null;
+  difficulty: string;
+  created_at: string;
+  last_correct: boolean | null;
+  last_score: number | null;
 }
 
 export interface SubmitResult {

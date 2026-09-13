@@ -6,6 +6,8 @@ from sqlalchemy import (
     String,
     Integer,
     Text,
+    Boolean,
+    JSON,
     DateTime,
     ForeignKey,
     UniqueConstraint,
@@ -35,6 +37,12 @@ class User(Base):
     )
     chat_messages = relationship(
         "ChatMessage", back_populates="user", cascade="all, delete-orphan"
+    )
+    exercises = relationship(
+        "Exercise", back_populates="user", cascade="all, delete-orphan"
+    )
+    exercise_attempts = relationship(
+        "ExerciseAttempt", back_populates="user", cascade="all, delete-orphan"
     )
 
 
@@ -100,3 +108,44 @@ class ChatMessage(Base):
     created_at = Column(DateTime(timezone=True), default=_now)
 
     user = relationship("User", back_populates="chat_messages")
+
+
+class Exercise(Base):
+    """Un ejercicio generado por IA para un usuario y módulo determinados."""
+
+    __tablename__ = "exercises"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    module_id = Column(String, ForeignKey("modules.id", ondelete="CASCADE"), nullable=False)
+    topic = Column(String, nullable=True)
+    difficulty = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    statement = Column(Text, nullable=False)
+    starter_code = Column(Text, nullable=False)
+    hints = Column(JSON, nullable=False, default=list)
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+    user = relationship("User", back_populates="exercises")
+    attempts = relationship(
+        "ExerciseAttempt", back_populates="exercise", cascade="all, delete-orphan"
+    )
+
+
+class ExerciseAttempt(Base):
+    """Cada solución que un usuario envía para un ejercicio, con su evaluación."""
+
+    __tablename__ = "exercise_attempts"
+    __table_args__ = (Index("ix_attempts_exercise", "exercise_id"),)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    exercise_id = Column(UUID(as_uuid=True), ForeignKey("exercises.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_code = Column(Text, nullable=False)
+    correct = Column(Boolean, nullable=False)
+    score = Column(Integer, nullable=False)
+    feedback = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+    exercise = relationship("Exercise", back_populates="attempts")
+    user = relationship("User", back_populates="exercise_attempts")

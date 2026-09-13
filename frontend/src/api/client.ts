@@ -3,6 +3,7 @@ import type {
   Module,
   ChatMessageOut,
   Exercise,
+  ExerciseHistoryItem,
   SubmitResult,
   ProgressResponse,
   AuthUser,
@@ -103,16 +104,19 @@ export async function generateExercise(
   return data;
 }
 
-export async function submitExercise(
-  moduleId: string,
-  exerciseTitle: string,
-  exerciseStatement: string,
-  userCode: string
-): Promise<SubmitResult> {
+export async function fetchExerciseHistory(moduleId: string): Promise<ExerciseHistoryItem[]> {
+  const { data } = await api.get<ExerciseHistoryItem[]>(`/exercises/history/${moduleId}`);
+  return data;
+}
+
+export async function fetchExercise(exerciseId: string): Promise<Exercise> {
+  const { data } = await api.get<Exercise>(`/exercises/${exerciseId}`);
+  return data;
+}
+
+export async function submitExercise(exerciseId: string, userCode: string): Promise<SubmitResult> {
   const { data } = await api.post<SubmitResult>("/exercises/submit", {
-    module_id: moduleId,
-    exercise_title: exerciseTitle,
-    exercise_statement: exerciseStatement,
+    exercise_id: exerciseId,
     user_code: userCode,
   });
   return data;

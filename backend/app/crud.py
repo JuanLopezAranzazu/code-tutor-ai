@@ -27,6 +27,82 @@ def get_module(db: Session, module_id: str) -> Optional[models.Module]:
     )
 
 
+# ---------- Ejercicios ----------
+
+def create_exercise(
+    db: Session,
+    user_id: UUID,
+    module_id: str,
+    topic: Optional[str],
+    difficulty: str,
+    title: str,
+    statement: str,
+    starter_code: str,
+    hints: List[str],
+) -> models.Exercise:
+    exercise = models.Exercise(
+        user_id=user_id,
+        module_id=module_id,
+        topic=topic,
+        difficulty=difficulty,
+        title=title,
+        statement=statement,
+        starter_code=starter_code,
+        hints=hints,
+    )
+    db.add(exercise)
+    db.commit()
+    db.refresh(exercise)
+    return exercise
+
+
+def get_exercise(db: Session, exercise_id: UUID) -> Optional[models.Exercise]:
+    return db.query(models.Exercise).filter(models.Exercise.id == exercise_id).first()
+
+
+def list_exercises_with_last_attempt(db: Session, user_id: UUID, module_id: str, limit: int = 30):
+    exercises = (
+        db.query(models.Exercise)
+        .filter(models.Exercise.user_id == user_id, models.Exercise.module_id == module_id)
+        .order_by(models.Exercise.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    pairs = []
+    for ex in exercises:
+        last_attempt = (
+            db.query(models.ExerciseAttempt)
+            .filter(models.ExerciseAttempt.exercise_id == ex.id)
+            .order_by(models.ExerciseAttempt.created_at.desc())
+            .first()
+        )
+        pairs.append((ex, last_attempt))
+    return pairs
+
+
+def create_attempt(
+    db: Session,
+    exercise_id: UUID,
+    user_id: UUID,
+    user_code: str,
+    correct: bool,
+    score: int,
+    feedback: str,
+) -> models.ExerciseAttempt:
+    attempt = models.ExerciseAttempt(
+        exercise_id=exercise_id,
+        user_id=user_id,
+        user_code=user_code,
+        correct=correct,
+        score=score,
+        feedback=feedback,
+    )
+    db.add(attempt)
+    db.commit()
+    db.refresh(attempt)
+    return attempt
+
+
 # ---------- Progreso ----------
 
 def record_attempt(
