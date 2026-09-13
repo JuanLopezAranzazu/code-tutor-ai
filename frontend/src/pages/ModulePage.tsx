@@ -103,17 +103,23 @@ function TutorTab({ module }: { module: Module }) {
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   useEffect(() => {
-    setLoadingHistory(true);
     fetchChatHistory(module.id)
       .then((history) => {
         setMessages(
           history.length > 0
-            ? history.map((h) => ({ role: h.role, content: h.content }))
+            ? history.map((h) => ({
+                role: h.role,
+                content: h.content,
+              }))
             : [welcomeMessage(module.name)],
         );
       })
-      .catch(() => setMessages([welcomeMessage(module.name)]))
-      .finally(() => setLoadingHistory(false));
+      .catch(() => {
+        setMessages([welcomeMessage(module.name)]);
+      })
+      .finally(() => {
+        setLoadingHistory(false);
+      });
   }, [module.id]);
 
   async function handleSend() {
@@ -216,8 +222,10 @@ function TutorTab({ module }: { module: Module }) {
 }
 
 function ExercisesTab({ module }: { module: Module }) {
+  type Difficulty = "facil" | "media" | "dificil";
+
   const [topic, setTopic] = useState<string>(module.topics[0]?.id ?? "");
-  const [difficulty, setDifficulty] = useState<"facil" | "media" | "dificil">(
+  const [difficulty, setDifficulty] = useState<Difficulty>(
     "facil",
   );
   const [exercise, setExercise] = useState<Exercise | null>(null);
@@ -290,7 +298,7 @@ function ExercisesTab({ module }: { module: Module }) {
           <label className="text-xs text-slate-400">Dificultad</label>
           <select
             value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value as any)}
+            onChange={(e) => setDifficulty(e.target.value as Difficulty)}
             className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-100 sm:w-auto"
           >
             <option value="facil">Fácil</option>
@@ -380,7 +388,7 @@ function ExercisesTab({ module }: { module: Module }) {
           </h4>
           <ul className="max-h-72 divide-y divide-slate-800 overflow-y-auto">
             {history.map((item) => {
-              const isActive = exercise && item.id === (exercise as any).id;
+              const isActive = exercise !== null && item.id === exercise.id;
               return (
                 <li key={item.id}>
                   <button

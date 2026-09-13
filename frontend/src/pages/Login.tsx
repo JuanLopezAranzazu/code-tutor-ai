@@ -1,6 +1,7 @@
+import axios from "axios";
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 export default function Login() {
   const { login } = useAuth();
@@ -17,8 +18,12 @@ export default function Login() {
     try {
       await login(email, password);
       navigate("/");
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? "No se pudo iniciar sesión");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail ?? "No se pudo iniciar sesión");
+      } else {
+        setError("No se pudo iniciar sesión");
+      }
     } finally {
       setLoading(false);
     }

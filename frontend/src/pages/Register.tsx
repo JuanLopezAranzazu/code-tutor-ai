@@ -1,6 +1,7 @@
+import axios from "axios";
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 export default function Register() {
   const { register } = useAuth();
@@ -18,8 +19,12 @@ export default function Register() {
     try {
       await register(email, password, name || undefined);
       navigate("/");
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? "No se pudo crear la cuenta");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail ?? "No se pudo crear la cuenta");
+      } else {
+        setError("No se pudo crear la cuenta");
+      }
     } finally {
       setLoading(false);
     }
